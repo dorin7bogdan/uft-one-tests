@@ -1,5 +1,5 @@
 template:
-  name: FileSystem Run Step
+  name: FileSystem Cmd Step
   type: Step
   tags: {}
   spec:
