@@ -1,5 +1,5 @@
 template:
-  name: FT WinRM
+  name: FT WinRM Stage
   identifier: FT_WinRM
   versionLabel: "26.2"
   type: Stage
