@@ -1,0 +1,70 @@
+template:
+  name: FileSystem Run Step
+  type: Step
+  tags: {}
+  spec:
+    timeout: 10m
+    type: Command
+    spec:
+      onDelegate: false
+      environmentVariables:
+        - name: testPath
+          type: String
+          value: <+input>.default(C:\UFTTests\QuickPass)
+        - name: workingDirectory
+          type: String
+          value: <+input>.default(C:\Temp\FT)
+      outputVariables: []
+      commandUnits:
+        - identifier: Cmd_FS_Run
+          name: Cmd FS Run
+          type: Script
+          spec:
+            workingDirectory: C:\Temp\FT
+            shell: PowerShell
+            source:
+              type: Inline
+              spec:
+                script: |-
+                  Write-Host "BEGIN of Script"
+                  $ErrorActionPreference = 'Stop'
+                  Write-Host "Current working directory: $($PWD.Path)"
+
+                  $psFilename = ".\run-uft.ps1"
+                  $runType = "FileSystem"
+                  $testPath = "$Env:testPath"
+                  $workingDirectory = "$Env:workingDirectory"
+                  $seqId = "<+pipeline.sequenceId>"
+
+                  Write-Host "testPath = $testPath"
+                  Write-Host "workingDirectory = $workingDirectory"
+
+                  Set-Location -Path $workingDirectory
+                  Write-Host "Set current working directory to: $($PWD.Path)"
+
+                  if (-not (Test-Path $psFilename)) {
+                    Write-Error "$psFilename not found at $PWD"
+                    exit 10
+                  }
+
+                  Unblock-File -Path $psFilename -ErrorAction SilentlyContinue
+
+                  & $psFilename `
+                    -runType $runType `
+                    -testPath $testPath `
+                    -seqId $seqId
+
+                  exit $LASTEXITCODE
+      delegateSelectors:
+        - uft
+    failureStrategies:
+      - onFailure:
+          errors:
+            - AllErrors
+          action:
+            type: MarkAsFailure
+    strategy:
+      repeat:
+        items: <+infra.hosts>
+  versionLabel: "26.2"
+  identifier: FileSystem_Run_Step
