@@ -1,0 +1,64 @@
+template:
+  name: FT WinRM
+  identifier: FT_WinRM
+  versionLabel: "26.2"
+  type: Stage
+  tags: {}
+  spec:
+    type: Deployment
+    spec:
+      deploymentType: WinRm
+      environment:
+        environmentRef: <+input>
+        deployToAll: false
+        environmentInputs: <+input>
+        serviceOverrideInputs: <+input>
+        infrastructureDefinitions: <+input>
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: MarkAsFailure
+      service:
+        serviceRef: <+input>
+        serviceInputs: <+input>
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: MarkAsFailure
+        disableArtifactValidation: true
+      execution:
+        steps:
+          - step:
+              name: FS Run Step
+              identifier: FS_Run_Step
+              template:
+                templateRef: account.FileSystem_Run_Step
+                versionLabel: "26.2"
+                templateInputs:
+                  type: Command
+                  spec:
+                    environmentVariables:
+                      - name: testPath
+                        type: String
+                        value: <+input>.default(C:\UFTTests\QuickPass)
+                      - name: workingDirectory
+                        type: String
+                        value: <+input>.default(C:\Temp\FT)
+        rollbackSteps: []
+    runMode:
+      type: Manual
+      timeout: 5m
+    when:
+      pipelineStatus: Success
+    delegateSelectors:
+      - windows
+    failureStrategies:
+      - onFailure:
+          errors:
+            - AllErrors
+          action:
+            type: MarkAsFailure
