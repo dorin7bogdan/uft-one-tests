@@ -1,7 +1,7 @@
 template:
-  name: FTL Run and Upload Artifacts Git
-  identifier: FTL_Run_and_Upload_Artifacts_Git
-  versionLabel: v1
+  name: FTL Run and Upload Artifacts
+  identifier: FTL_Run_and_Upload_Artifacts
+  versionLabel: 26.3
   type: StepGroup
   description: Encrypts a password, runs FTToolsLauncher on a Windows runner, prints PASS or FAIL from its exit code, and always uploads the results to a Harness Artifact Registry.
   tags:
