@@ -1,0 +1,131 @@
+template:
+  name: FTL Run and Upload Artifacts Git
+  identifier: FTL_Run_and_Upload_Artifacts_Git
+  versionLabel: v1
+  type: StepGroup
+  description: Encrypts a password, runs FTToolsLauncher on a Windows runner, prints PASS or FAIL from its exit code, and always uploads the results to a Harness Artifact Registry.
+  tags:
+    ai_generated: ""
+  spec:
+    stageType: CI
+    steps:
+      - step:
+          type: Run
+          name: Encrypt and Run FTL
+          identifier: encrypt_and_run_ftl
+          timeout: 10m
+          spec:
+            shell: Powershell
+            envVariables:
+              FT_RUN_TYPE: <+input>
+              FT_TEST_PATH: <+input>
+              FT_USERNAME: <+input>
+              FT_PASSWORD: <+input>
+            outputVariables:
+              - name: FT_RESULT
+              - name: FT_EXIT_CODE
+            command: |-
+              $ErrorActionPreference = 'Stop'
+
+              $propsFile = 'props.txt'
+              $aes = $null
+              $keyBytes = $null
+              $keyChars = $null
+              $stdinBytes = $null
+              $plainBytes = $null
+              $exitCode = 1
+
+              $wipe = {
+                if ($stdinBytes) { [Array]::Clear($stdinBytes, 0, $stdinBytes.Length) }
+                if ($keyChars) { [Array]::Clear($keyChars, 0, $keyChars.Length) }
+                if ($keyBytes) { [Array]::Clear($keyBytes, 0, $keyBytes.Length) }
+                if ($plainBytes) { [Array]::Clear($plainBytes, 0, $plainBytes.Length) }
+                if ($aes) { $aes.Clear() }
+              }
+
+              try {
+                if ([string]::IsNullOrEmpty($Env:FT_PASSWORD)) { throw 'FT_PASSWORD input is empty.' }
+
+                $aes = [System.Security.Cryptography.Aes]::Create()
+                $aes.KeySize = 256
+                $aes.Mode = [System.Security.Cryptography.CipherMode]::CBC
+                $aes.Padding = [System.Security.Cryptography.PaddingMode]::PKCS7
+                $aes.GenerateKey()
+                $aes.GenerateIV()
+
+                $plainBytes = [System.Text.Encoding]::UTF8.GetBytes($Env:FT_PASSWORD)
+                Remove-Item Env:FT_PASSWORD
+
+                $encryptor = $aes.CreateEncryptor()
+                $cipherBytes = $encryptor.TransformFinalBlock($plainBytes, 0, $plainBytes.Length)
+                $encryptor.Dispose()
+                $encryptedPassword = [Convert]::ToBase64String([byte[]]($aes.IV + $cipherBytes))
+                [Array]::Clear($plainBytes, 0, $plainBytes.Length)
+
+                $keyBytes = $aes.Key
+                $keyChars = New-Object char[] 44
+                [void][Convert]::ToBase64CharArray($keyBytes, 0, $keyBytes.Length, $keyChars, 0)
+                $stdinBytes = New-Object byte[] 45
+                [void][System.Text.Encoding]::ASCII.GetBytes($keyChars, 0, 44, $stdinBytes, 0)
+                $stdinBytes[44] = 10
+
+                $lines = @(
+                  "runType=$($Env:FT_RUN_TYPE)",
+                  "testPath=$($Env:FT_TEST_PATH)",
+                  "username=$($Env:FT_USERNAME)",
+                  "password=$encryptedPassword"
+                )
+                $propsPath = Join-Path (Get-Location).Path $propsFile
+                [System.IO.File]::WriteAllLines($propsPath, $lines, (New-Object System.Text.UTF8Encoding($false)))
+
+                $psi = New-Object System.Diagnostics.ProcessStartInfo
+                $psi.FileName = 'FTToolsLauncher'
+                $psi.Arguments = '--use-stdin-key -paramfile props.txt'
+                $psi.UseShellExecute = $false
+                $psi.RedirectStandardInput = $true
+
+                $proc = [System.Diagnostics.Process]::Start($psi)
+                try {
+                  $stdin = $proc.StandardInput.BaseStream
+                  $stdin.Write($stdinBytes, 0, $stdinBytes.Length)
+                  $stdin.Flush()
+                  $stdin.Close()
+                }
+                finally {
+                  & $wipe
+                }
+
+                $proc.WaitForExit()
+                $exitCode = $proc.ExitCode
+
+                $label = switch ($exitCode) {
+                  0 { 'PASS' }
+                  -1 { 'FAIL' }
+                  -2 { 'FAIL (partial)' }
+                  -3 { 'ABORTED' }
+                  -4 { 'UNSTABLE' }
+                  -5 { 'FAIL (ALM not connected)' }
+                  default { 'FAIL (unknown exit code ' + $exitCode + ')' }
+                }
+                Write-Host ('RESULT: ' + $label)
+                $Env:FT_RESULT = $label
+                $Env:FT_EXIT_CODE = [string]$exitCode
+              }
+              finally {
+                & $wipe
+                Remove-Item $propsFile -Force -ErrorAction SilentlyContinue
+              }
+
+              exit $exitCode
+      - step:
+          type: HarUpload
+          name: Upload Results to Artifact Registry
+          identifier: upload_results
+          when:
+            stageStatus: All
+          spec:
+            registryRef: <+input>
+            packageType: GENERIC
+            packageName: <+input>.default(ftl-results)
+            version: <+pipeline.sequenceId>
+            sourcePath: <+input>
