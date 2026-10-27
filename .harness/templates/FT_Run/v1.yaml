@@ -80,7 +80,7 @@ template:
                     "failIfNotPassed=$Env:failIfNotPassed"
                   )
                   [IO.File]::WriteAllLines("$PWD\$f", $lines)
-                  Write-Host "Command: $exe -paramfile $f"
+                  Write-Host "$exe -paramfile $f"
                   $p = Start-Process $exe -ArgumentList "-paramfile", $f -Wait -PassThru -NoNewWindow
                   exit $p.ExitCode
       delegateSelectors:
