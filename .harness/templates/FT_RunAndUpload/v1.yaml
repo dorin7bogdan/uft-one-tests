@@ -1,0 +1,63 @@
+template:
+  name: FT_RunAndUpload
+  identifier: FT_RunAndUpload
+  versionLabel: v1
+  type: StepGroup
+  description: Copy of FT_Run_And_Upload. Runs FTToolsLauncher with FT_Run, then uploads props_<seqId>.txt and results_<seqId>.xml with FT_Upload, even if the run fails.
+  projectIdentifier: UFT
+  orgIdentifier: default
+  tags:
+    ai_generated: ""
+  spec:
+    stageType: CD
+    steps:
+      - step:
+          name: Run FTToolsLauncher
+          identifier: Run_FTToolsLauncher
+          template:
+            templateRef: FT_Run
+            versionLabel: v1
+            templateInputs:
+              identifier: Run_FTToolsLauncher
+              type: Command
+              spec:
+                environmentVariables:
+                  - name: FT_RUN_TYPE
+                    type: String
+                    value: <+input>
+                  - name: FT_TEST_PATH
+                    type: String
+                    value: <+input>
+                  - name: FT_WORK_DIR
+                    type: String
+                    value: <+input>
+      - step:
+          name: Upload Files
+          identifier: Upload_Files
+          when:
+            stageStatus: All
+          template:
+            templateRef: FT_Upload
+            versionLabel: v1
+            templateInputs:
+              identifier: Upload_Files
+              type: Command
+              spec:
+                environmentVariables:
+                  - name: FT_WORK_DIR
+                    type: String
+                    value: <+input>
+                  - name: RegistryName
+                    type: String
+                    value: <+input>
+                  - name: ApiKey
+                    type: String
+                    value: <+input>
+                commandUnits:
+                  - identifier: Upload
+                    type: Script
+                    spec:
+                      workingDirectory: <+input>
+          strategy:
+            repeat:
+              items: <+infra.hosts>
