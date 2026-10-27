@@ -1,0 +1,73 @@
+template:
+  name: FT_Upload
+  identifier: FT_Upload
+  versionLabel: v1
+  type: Step
+  description: Copy of FT_Upload_Artifacts. Uploads props_<seqId>.txt and results_<seqId>.xml from a working directory to an Artifact Registry and prints a link to the run folder. Inputs are the working directory (FT_WORK_DIR), registry name and API key.
+  projectIdentifier: UFT
+  orgIdentifier: default
+  tags:
+    ai_generated: ""
+  spec:
+    type: Command
+    name: Upload Files
+    identifier: Upload_Files
+    timeout: 10m
+    spec:
+      onDelegate: false
+      environmentVariables:
+        - name: FT_WORK_DIR
+          type: String
+          value: <+input>
+        - name: RegistryName
+          type: String
+          value: <+input>
+        - name: ApiKey
+          type: String
+          value: <+input>
+      commandUnits:
+        - identifier: Upload
+          name: Upload files
+          type: Script
+          spec:
+            workingDirectory: <+input>
+            shell: PowerShell
+            source:
+              type: Inline
+              spec:
+                script: |
+                  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                  Add-Type -AssemblyName System.Net.Http
+                  Set-Location "$env:FT_WORK_DIR"
+                  Write-Host "Work dir: $PWD"
+                  $registry = "$env:RegistryName".Trim()
+                  $key = '$env:ApiKey'.Trim()
+                  if ($registry -eq '') { Write-Host "No registry name provided"; exit 1 }
+                  if ($key -eq '') { Write-Host "No API key provided"; exit 1 }
+                  $seqId = "<+pipeline.sequenceId>"
+                  $names = @("props_$seqId.txt", "results_$seqId.xml")
+                  $uri = "https://pkg.harness.io/pkg/<+account.identifier>/$registry/generic/uft/run-$seqId"
+                  $link = "https://app.harness.io/ng/account/<+account.identifier>/module/har/orgs/<+org.identifier>/projects/<+project.identifier>/registries/$registry/artifacts/uft/versions/run-$seqId/overview"
+                  $client = New-Object System.Net.Http.HttpClient
+                  $client.DefaultRequestHeaders.Add("x-api-key", $key)
+                  $failed = $false
+                  foreach ($f in $names) {
+                    $path = Join-Path $PWD.Path $f
+                    if (-not (Test-Path -LiteralPath $path)) {
+                      Write-Host "Skipping $path (not found)"
+                      continue
+                    }
+                    Write-Host "Uploading $path"
+                    $content = New-Object System.Net.Http.MultipartFormDataContent
+                    $content.Add((New-Object System.Net.Http.StringContent($f)), 'filename')
+                    $content.Add((New-Object System.Net.Http.ByteArrayContent(,[System.IO.File]::ReadAllBytes($path))), 'file', $f)
+                    $resp = $client.PutAsync($uri, $content).Result
+                    Write-Host "HTTP $([int]$resp.StatusCode) $($resp.Content.ReadAsStringAsync().Result)"
+                    if (-not $resp.IsSuccessStatusCode) { $failed = $true }
+                  }
+                  $client.Dispose()
+                  Write-Host ""
+                  Write-Host "Uploaded files: $link"
+                  if ($failed) { exit 1 }
+      delegateSelectors:
+        - uft
