@@ -3,7 +3,7 @@ template:
   identifier: FT_Run
   versionLabel: v1
   type: Step
-  description: Copy of Run FTToolsLauncher. WinRM Command step that writes props_<seqId>.txt (including resultsFilename=results_<seqId>.xml, testPath with doubled backslashes) from its inputs and runs FTToolsLauncher with it, waiting for the process to complete.
+  description: Copy of Run FTToolsLauncher. WinRM Command step that writes props_<executionId>.txt (runType=FileSystem, resultsFilename=results_<executionId>.xml, testPath with doubled backslashes) from its inputs and runs FTToolsLauncher from the FT_TOOLS_LAUNCHER location on the VM, waiting for the process to complete.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -16,35 +16,68 @@ template:
     spec:
       onDelegate: false
       environmentVariables:
-        - name: FT_RUN_TYPE
+        - name: testPaths
           type: String
           value: <+input>
-        - name: FT_TEST_PATH
-          type: String
+        - name: timeout
+          type: Number
           value: <+input>
-        - name: FT_WORK_DIR
+        - name: cancelRunOnFailure
           type: String
-          value: <+input>
+          value: <+input>.default(false).allowedValues(true,false)
+        - name: resultTestNameOnly
+          type: String
+          value: <+input>.default(true).allowedValues(true,false)
+        - name: resultUnifiedTestClassname
+          type: String
+          value: <+input>.default(false).allowedValues(true,false)
+        - name: archiveReportsAsSingleArtifact
+          type: String
+          value: <+input>.default(false).allowedValues(true,false)
+        - name: cleanupTestRunFiles
+          type: String
+          value: <+input>.default(true).allowedValues(true,false)
+        - name: failIfNotPassed
+          type: String
+          value: <+input>.default(true).allowedValues(true,false)
       commandUnits:
         - identifier: Run_FTToolsLauncher
           name: Run FTToolsLauncher
           type: Script
           spec:
-            workingDirectory: C:\Temp\FT
             shell: PowerShell
             source:
               type: Inline
               spec:
                 script: |-
                   $ErrorActionPreference = 'Stop'
-                  Set-Location "$Env:FT_WORK_DIR"
+                  $tools = "$Env:FT_TOOLS_LAUNCHER"
+                  if (-not $tools) { Write-Host "FT_TOOLS_LAUNCHER is not defined on this VM"; exit 1 }
+                  if (Test-Path -LiteralPath $tools -PathType Leaf) {
+                    $exe = $tools
+                    $dir = Split-Path -Parent $tools
+                  } else {
+                    $dir = $tools
+                    $exe = Get-ChildItem -Path $dir -Filter 'FTToolsLauncher*.exe' | Select-Object -First 1 -ExpandProperty FullName
+                  }
+                  if (-not $exe) { Write-Host "FTToolsLauncher not found in $tools"; exit 1 }
+                  Set-Location $dir
                   Write-Host "Work dir: $PWD"
-                  $f = "props_<+pipeline.sequenceId>.txt"
-                  $tp = "$Env:FT_TEST_PATH" -replace '\\+', '\\'
-                  [IO.File]::WriteAllLines("$PWD\$f", @("runType=$Env:FT_RUN_TYPE", "Test1=$tp", "resultsFilename=results_<+pipeline.sequenceId>.xml"))
-                  $exe = Get-ChildItem -Path $PWD -Filter 'FTToolsLauncher*.exe' | Select-Object -First 1 -ExpandProperty FullName
-                  if (-not $exe) { $exe = (Get-Command FTToolsLauncher -ErrorAction SilentlyContinue).Source }
-                  if (-not $exe) { Write-Host "FTToolsLauncher not found in $PWD or on PATH"; exit 1 }
+                  $f = "props_<+pipeline.executionId>.txt"
+                  $tp = "$Env:testPaths" -replace '\\+', '\\'
+                  $lines = @(
+                    "runType=FileSystem",
+                    "Test1=$tp",
+                    "resultsFilename=results_<+pipeline.executionId>.xml",
+                    "timeout=$Env:timeout",
+                    "cancelRunOnFailure=$Env:cancelRunOnFailure",
+                    "resultTestNameOnly=$Env:resultTestNameOnly",
+                    "resultUnifiedTestClassname=$Env:resultUnifiedTestClassname",
+                    "archiveReportsAsSingleArtifact=$Env:archiveReportsAsSingleArtifact",
+                    "cleanupTestRunFiles=$Env:cleanupTestRunFiles",
+                    "failIfNotPassed=$Env:failIfNotPassed"
+                  )
+                  [IO.File]::WriteAllLines("$PWD\$f", $lines)
                   Write-Host "Launcher: $exe"
                   $p = Start-Process $exe -ArgumentList "-paramfile", $f -Wait -PassThru -NoNewWindow
                   exit $p.ExitCode
