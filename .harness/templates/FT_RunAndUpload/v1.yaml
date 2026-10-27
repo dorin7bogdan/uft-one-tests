@@ -3,7 +3,7 @@ template:
   identifier: FT_RunAndUpload
   versionLabel: v1
   type: StepGroup
-  description: Copy of FT_Run_And_Upload. Runs FTToolsLauncher with FT_Run, then uploads props_<seqId>.txt and results_<seqId>.xml with FT_Upload, even if the run fails.
+  description: Copy of FT_Run_And_Upload. Runs FTToolsLauncher with FT_Run, then uploads props_<executionId>.txt and results_<executionId>.xml with FT_Upload, even if the run fails.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -22,15 +22,30 @@ template:
               type: Command
               spec:
                 environmentVariables:
-                  - name: FT_RUN_TYPE
+                  - name: testPaths
                     type: String
                     value: <+input>
-                  - name: FT_TEST_PATH
-                    type: String
+                  - name: timeout
+                    type: Number
                     value: <+input>
-                  - name: FT_WORK_DIR
+                  - name: cancelRunOnFailure
                     type: String
-                    value: <+input>
+                    value: <+input>.default(false).allowedValues(true,false)
+                  - name: resultTestNameOnly
+                    type: String
+                    value: <+input>.default(true).allowedValues(true,false)
+                  - name: resultUnifiedTestClassname
+                    type: String
+                    value: <+input>.default(false).allowedValues(true,false)
+                  - name: archiveReportsAsSingleArtifact
+                    type: String
+                    value: <+input>.default(false).allowedValues(true,false)
+                  - name: cleanupTestRunFiles
+                    type: String
+                    value: <+input>.default(true).allowedValues(true,false)
+                  - name: failIfNotPassed
+                    type: String
+                    value: <+input>.default(true).allowedValues(true,false)
       - step:
           name: Upload Files
           identifier: Upload_Files
@@ -44,20 +59,12 @@ template:
               type: Command
               spec:
                 environmentVariables:
-                  - name: FT_WORK_DIR
-                    type: String
-                    value: <+input>
                   - name: RegistryName
                     type: String
                     value: <+input>
                   - name: ApiKey
                     type: String
                     value: <+input>
-                commandUnits:
-                  - identifier: Upload
-                    type: Script
-                    spec:
-                      workingDirectory: <+input>
           strategy:
             repeat:
               items: <+infra.hosts>
