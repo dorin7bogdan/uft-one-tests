@@ -1,0 +1,164 @@
+template:
+  name: FT_RunAndUpload_Inline
+  identifier: FT_RunAndUpload_Inline
+  versionLabel: v1
+  type: StepGroup
+  description: Copy of FT_Run_And_Upload_Inline. Step group with both steps defined inline. Runs FTToolsLauncher with runType=FileSystem, then uploads props_<seqId>.txt and results_<seqId>.xml to an Artifact Registry, even if the run fails.
+  projectIdentifier: UFT
+  orgIdentifier: default
+  tags:
+    ai_generated: ""
+  spec:
+    stageType: CD
+    steps:
+      - step:
+          name: Run FTToolsLauncher
+          identifier: Run_FTToolsLauncher
+          type: Command
+          timeout: 10m
+          spec:
+            onDelegate: false
+            environmentVariables:
+              - name: testPaths
+                type: String
+                value: <+input>
+              - name: timeout
+                type: Number
+                value: <+input>
+              - name: cancelRunOnFailure
+                type: String
+                value: <+input>.default(false).allowedValues(true,false)
+              - name: resultTestNameOnly
+                type: String
+                value: <+input>.default(true).allowedValues(true,false)
+              - name: resultUnifiedTestClassname
+                type: String
+                value: <+input>.default(false).allowedValues(true,false)
+              - name: archiveReportsAsSingleArtifact
+                type: String
+                value: <+input>.default(false).allowedValues(true,false)
+              - name: cleanupTestRunFiles
+                type: String
+                value: <+input>.default(true).allowedValues(true,false)
+              - name: failIfNotPassed
+                type: String
+                value: <+input>.default(true).allowedValues(true,false)
+            commandUnits:
+              - identifier: Run_FTToolsLauncher
+                name: Run FTToolsLauncher
+                type: Script
+                spec:
+                  shell: PowerShell
+                  source:
+                    type: Inline
+                    spec:
+                      script: |-
+                        $ErrorActionPreference = 'Stop'
+                        $tools = "$Env:FT_TOOLS_LAUNCHER"
+                        if (-not $tools) { Write-Host "FT_TOOLS_LAUNCHER is not defined on this VM"; exit 1 }
+                        if (Test-Path -LiteralPath $tools -PathType Leaf) {
+                          $exe = $tools
+                          $dir = Split-Path -Parent $tools
+                        } else {
+                          $dir = $tools
+                          $exe = Get-ChildItem -Path $dir -Filter 'FTToolsLauncher*.exe' | Select-Object -First 1 -ExpandProperty FullName
+                        }
+                        if (-not $exe) { Write-Host "FTToolsLauncher not found in $tools"; exit 1 }
+                        Set-Location $dir
+                        Write-Host "Work dir: $PWD"
+                        $f = "props_<+pipeline.sequenceId>.txt"
+                        $tp = "$Env:testPaths" -replace '\\+', '\\'
+                        $lines = @(
+                          "runType=FileSystem",
+                          "Test1=$tp",
+                          "resultsFilename=results_<+pipeline.sequenceId>.xml",
+                          "timeout=$Env:timeout",
+                          "cancelRunOnFailure=$Env:cancelRunOnFailure",
+                          "resultTestNameOnly=$Env:resultTestNameOnly",
+                          "resultUnifiedTestClassname=$Env:resultUnifiedTestClassname",
+                          "archiveReportsAsSingleArtifact=$Env:archiveReportsAsSingleArtifact",
+                          "cleanupTestRunFiles=$Env:cleanupTestRunFiles",
+                          "failIfNotPassed=$Env:failIfNotPassed"
+                        )
+                        [IO.File]::WriteAllLines("$PWD\$f", $lines)
+                        Write-Host "Launcher: $exe"
+                        $p = Start-Process $exe -ArgumentList "-paramfile", $f -Wait -PassThru -NoNewWindow
+                        exit $p.ExitCode
+            delegateSelectors:
+              - uft
+          failureStrategies:
+            - onFailure:
+                errors:
+                  - AllErrors
+                action:
+                  type: MarkAsFailure
+          strategy:
+            repeat:
+              items: <+infra.hosts>
+      - step:
+          name: Upload Files
+          identifier: Upload_Files
+          type: Command
+          timeout: 10m
+          when:
+            stageStatus: All
+          spec:
+            onDelegate: false
+            environmentVariables:
+              - name: RegistryName
+                type: String
+                value: <+input>
+              - name: ApiKey
+                type: String
+                value: <+input>
+            commandUnits:
+              - identifier: Upload
+                name: Upload files
+                type: Script
+                spec:
+                  shell: PowerShell
+                  source:
+                    type: Inline
+                    spec:
+                      script: |
+                        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                        Add-Type -AssemblyName System.Net.Http
+                        $tools = "$env:FT_TOOLS_LAUNCHER"
+                        if (-not $tools) { Write-Host "FT_TOOLS_LAUNCHER is not defined on this VM"; exit 1 }
+                        if (Test-Path -LiteralPath $tools -PathType Leaf) { $tools = Split-Path -Parent $tools }
+                        Set-Location $tools
+                        Write-Host "Work dir: $PWD"
+                        $registry = "$env:RegistryName".Trim()
+                        $key = "$env:ApiKey".Trim()
+                        if ($registry -eq '') { Write-Host "No registry name provided"; exit 1 }
+                        if ($key -eq '') { Write-Host "No API key provided"; exit 1 }
+                        $seqId = "<+pipeline.sequenceId>"
+                        $names = @("props_$seqId.txt", "results_$seqId.xml")
+                        $uri = "https://pkg.harness.io/pkg/<+account.identifier>/$registry/generic/uft/run-$seqId"
+                        $link = "https://app.harness.io/ng/account/<+account.identifier>/module/har/orgs/<+org.identifier>/projects/<+project.identifier>/registries/$registry/artifacts/uft/versions/run-$seqId/overview"
+                        $client = New-Object System.Net.Http.HttpClient
+                        $client.DefaultRequestHeaders.Add("x-api-key", $key)
+                        $failed = $false
+                        foreach ($f in $names) {
+                          $path = Join-Path $PWD.Path $f
+                          if (-not (Test-Path -LiteralPath $path)) {
+                            Write-Host "Skipping $path (not found)"
+                            continue
+                          }
+                          Write-Host "Uploading $path"
+                          $content = New-Object System.Net.Http.MultipartFormDataContent
+                          $content.Add((New-Object System.Net.Http.StringContent($f)), 'filename')
+                          $content.Add((New-Object System.Net.Http.ByteArrayContent(,[System.IO.File]::ReadAllBytes($path))), 'file', $f)
+                          $resp = $client.PutAsync($uri, $content).Result
+                          Write-Host "HTTP $([int]$resp.StatusCode) $($resp.Content.ReadAsStringAsync().Result)"
+                          if (-not $resp.IsSuccessStatusCode) { $failed = $true }
+                        }
+                        $client.Dispose()
+                        Write-Host ""
+                        Write-Host "Uploaded files: $link"
+                        if ($failed) { exit 1 }
+            delegateSelectors:
+              - uft
+          strategy:
+            repeat:
+              items: <+infra.hosts>
