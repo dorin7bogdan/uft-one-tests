@@ -3,7 +3,7 @@ template:
   identifier: FT_Run
   versionLabel: v1
   type: Step
-  description: Copy of Run FTToolsLauncher. WinRM Command step that writes props_<executionId>.txt (runType=FileSystem, resultsFilename=results_<executionId>.xml, testPath with doubled backslashes) from its inputs and runs FTToolsLauncher from the FT_TOOLS_LAUNCHER location on the VM, waiting for the process to complete.
+  description: Copy of Run FTToolsLauncher. WinRM Command step that writes props_<sequenceId>.txt (runType=FileSystem, resultsFilename=results_<sequenceId>.xml, testPath with doubled backslashes) in a per-pipeline subfolder of FT_TOOLS_LAUNCHER on the VM and runs FTToolsLauncher, waiting for the process to complete.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -61,14 +61,16 @@ template:
                     $exe = Get-ChildItem -Path $dir -Filter 'FTToolsLauncher*.exe' | Select-Object -First 1 -ExpandProperty FullName
                   }
                   if (-not $exe) { Write-Host "FTToolsLauncher not found in $tools"; exit 1 }
-                  Set-Location $dir
+                  $work = Join-Path $dir "<+pipeline.identifier>"
+                  New-Item -ItemType Directory -Force -Path $work | Out-Null
+                  Set-Location $work
                   Write-Host "Work dir: $PWD"
-                  $f = "props_<+pipeline.executionId>.txt"
+                  $f = "props_<+pipeline.sequenceId>.txt"
                   $tp = "$Env:testPaths" -replace '\\+', '\\'
                   $lines = @(
                     "runType=FileSystem",
                     "Test1=$tp",
-                    "resultsFilename=results_<+pipeline.executionId>.xml",
+                    "resultsFilename=results_<+pipeline.sequenceId>.xml",
                     "timeout=$Env:timeout",
                     "cancelRunOnFailure=$Env:cancelRunOnFailure",
                     "resultTestNameOnly=$Env:resultTestNameOnly",
