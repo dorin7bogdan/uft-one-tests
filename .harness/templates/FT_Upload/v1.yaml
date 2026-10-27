@@ -41,7 +41,7 @@ template:
                   Set-Location "$env:FT_WORK_DIR"
                   Write-Host "Work dir: $PWD"
                   $registry = "$env:RegistryName".Trim()
-                  $key = '$env:ApiKey'.Trim()
+                  $key = "$env:ApiKey".Trim()
                   if ($registry -eq '') { Write-Host "No registry name provided"; exit 1 }
                   if ($key -eq '') { Write-Host "No API key provided"; exit 1 }
                   $seqId = "<+pipeline.sequenceId>"
