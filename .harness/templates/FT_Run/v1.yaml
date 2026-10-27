@@ -3,7 +3,7 @@ template:
   identifier: FT_Run
   versionLabel: v1
   type: Step
-  description: Copy of Run FTToolsLauncher. WinRM Command step that writes props_<sequenceId>.txt (runType=FileSystem, resultsFilename=results_<sequenceId>.xml, testPath with doubled backslashes) in a per-pipeline subfolder of FT_TOOLS_LAUNCHER on the VM and runs FTToolsLauncher, waiting for the process to complete.
+  description: Copy of Run FTToolsLauncher. WinRM Command step that writes props_<sequenceId>.txt (runType=FileSystem, resultsFilename=results_<sequenceId>.xml, testPath with doubled backslashes) in a per-pipeline subfolder of FT_TOOLS_LAUNCHER on the VM, prints the launcher command, and runs FTToolsLauncher, waiting for the process to complete.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -80,7 +80,7 @@ template:
                     "failIfNotPassed=$Env:failIfNotPassed"
                   )
                   [IO.File]::WriteAllLines("$PWD\$f", $lines)
-                  Write-Host "Launcher: $exe"
+                  Write-Host "Command: $exe -paramfile $f"
                   $p = Start-Process $exe -ArgumentList "-paramfile", $f -Wait -PassThru -NoNewWindow
                   exit $p.ExitCode
       delegateSelectors:
