@@ -3,7 +3,7 @@ template:
   identifier: FT_RunAndUpload_Inline
   versionLabel: v1
   type: StepGroup
-  description: Copy of FT_Run_And_Upload_Inline. Step group with both steps defined inline. Runs FTToolsLauncher with runType=FileSystem and fsZipTestReports=true in a per-pipeline subfolder of FT_TOOLS_LAUNCHER (printing the launcher command first, integer timeout in props), then uploads props_<sequenceId>.txt and results_<sequenceId>.xml to an Artifact Registry under a per-pipeline package, even if the run fails.
+  description: Copy of FT_Run_And_Upload_Inline. Step group with both steps defined inline. Runs FTToolsLauncher with runType=FileSystem and fsZipTestReports=true in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> (printing the launcher command first, integer timeout in props), then uploads props_<sequenceId>.txt and results_<sequenceId>.xml to an Artifact Registry under a per-pipeline package, even if the run fails.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -64,7 +64,7 @@ template:
                           $exe = Get-ChildItem -Path $dir -Filter 'FTToolsLauncher*.exe' | Select-Object -First 1 -ExpandProperty FullName
                         }
                         if (-not $exe) { Write-Host "FTToolsLauncher not found in $tools"; exit 1 }
-                        $work = Join-Path $dir "<+pipeline.identifier>"
+                        $work = Join-Path (Join-Path $dir "<+pipeline.identifier>") "<+pipeline.sequenceId>"
                         New-Item -ItemType Directory -Force -Path $work | Out-Null
                         Set-Location $work
                         Write-Host "Work dir: $PWD"
@@ -131,7 +131,8 @@ template:
                         if (-not $tools) { Write-Host "FT_TOOLS_LAUNCHER is not defined on this VM"; exit 1 }
                         if (Test-Path -LiteralPath $tools -PathType Leaf) { $tools = Split-Path -Parent $tools }
                         $pkg = "<+pipeline.identifier>"
-                        $work = Join-Path $tools $pkg
+                        $seqId = "<+pipeline.sequenceId>"
+                        $work = Join-Path (Join-Path $tools $pkg) $seqId
                         New-Item -ItemType Directory -Force -Path $work | Out-Null
                         Set-Location $work
                         Write-Host "Work dir: $PWD"
@@ -139,7 +140,6 @@ template:
                         $key = "$env:ApiKey".Trim()
                         if ($registry -eq '') { Write-Host "No registry name provided"; exit 1 }
                         if ($key -eq '') { Write-Host "No API key provided"; exit 1 }
-                        $seqId = "<+pipeline.sequenceId>"
                         $names = @("props_$seqId.txt", "results_$seqId.xml")
                         $uri = "https://pkg.harness.io/pkg/<+account.identifier>/$registry/generic/$pkg/run-$seqId"
                         $link = "https://app.harness.io/ng/account/<+account.identifier>/module/har/orgs/<+org.identifier>/projects/<+project.identifier>/registries/$registry/artifacts/$pkg/versions/run-$seqId/overview"
