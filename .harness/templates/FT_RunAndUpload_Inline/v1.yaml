@@ -3,7 +3,7 @@ template:
   identifier: FT_RunAndUpload_Inline
   versionLabel: v1
   type: StepGroup
-  description: Copy of FT_Run_And_Upload_Inline. Step group with both steps defined inline. Runs FTToolsLauncher with runType=FileSystem in a per-pipeline subfolder of FT_TOOLS_LAUNCHER (printing the launcher command first, integer timeout in props), then uploads props_<sequenceId>.txt and results_<sequenceId>.xml to an Artifact Registry under a per-pipeline package, even if the run fails.
+  description: Copy of FT_Run_And_Upload_Inline. Step group with both steps defined inline. Runs FTToolsLauncher with runType=FileSystem and fsZipTestReports=true in a per-pipeline subfolder of FT_TOOLS_LAUNCHER (printing the launcher command first, integer timeout in props), then uploads props_<sequenceId>.txt and results_<sequenceId>.xml to an Artifact Registry under a per-pipeline package, even if the run fails.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -81,7 +81,8 @@ template:
                           "resultUnifiedTestClassname=$Env:resultUnifiedTestClassname",
                           "archiveReportsAsSingleArtifact=$Env:archiveReportsAsSingleArtifact",
                           "cleanupTestRunFiles=$Env:cleanupTestRunFiles",
-                          "failIfNotPassed=$Env:failIfNotPassed"
+                          "failIfNotPassed=$Env:failIfNotPassed",
+                          "fsZipTestReports=true"
                         )
                         [IO.File]::WriteAllLines("$PWD\$f", $lines)
                         Write-Host "$exe -paramfile $f"
