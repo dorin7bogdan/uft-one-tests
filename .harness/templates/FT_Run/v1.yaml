@@ -3,7 +3,7 @@ template:
   identifier: FT_Run
   versionLabel: v1
   type: Step
-  description: Copy of Run FTToolsLauncher. WinRM Command step that writes props_<sequenceId>.txt (runType=FileSystem, resultsFilename=results_<sequenceId>.xml, testPath with doubled backslashes, integer timeout, fsZipTestReports=true) in a per-pipeline subfolder of FT_TOOLS_LAUNCHER on the VM, prints the launcher command, and runs FTToolsLauncher, waiting for the process to complete.
+  description: Copy of Run FTToolsLauncher. WinRM Command step that writes props_<sequenceId>.txt (runType=FileSystem, resultsFilename=results_<sequenceId>.xml, testPath with doubled backslashes, integer timeout, fsZipTestReports=true) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> on the VM, prints the launcher command, and runs FTToolsLauncher, waiting for the process to complete.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -61,7 +61,7 @@ template:
                     $exe = Get-ChildItem -Path $dir -Filter 'FTToolsLauncher*.exe' | Select-Object -First 1 -ExpandProperty FullName
                   }
                   if (-not $exe) { Write-Host "FTToolsLauncher not found in $tools"; exit 1 }
-                  $work = Join-Path $dir "<+pipeline.identifier>"
+                  $work = Join-Path (Join-Path $dir "<+pipeline.identifier>") "<+pipeline.sequenceId>"
                   New-Item -ItemType Directory -Force -Path $work | Out-Null
                   Set-Location $work
                   Write-Host "Work dir: $PWD"
