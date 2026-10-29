@@ -42,7 +42,7 @@ template:
                     value: <+input>.default(yes).allowedValues(yes,no)
                   - name: failIfNotPassed
                     type: String
-                    value: <+input>.default(true).allowedValues(true,false)
+                    value: <+input>.default(yes).allowedValues(yes,no)
                   - name: generateJUnitReport
                     type: String
                     value: <+input>.default(no).allowedValues(yes,no)
