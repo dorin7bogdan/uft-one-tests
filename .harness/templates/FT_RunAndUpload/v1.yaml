@@ -30,16 +30,16 @@ template:
                     value: <+input>
                   - name: cancelRunOnFailure
                     type: String
-                    value: <+input>.default(false).allowedValues(true,false)
+                    value: <+input>.default(no).allowedValues(yes,no)
                   - name: resultTestNameOnly
                     type: String
-                    value: <+input>.default(true).allowedValues(true,false)
+                    value: <+input>.default(yes).allowedValues(yes,no)
                   - name: resultUnifiedTestClassname
                     type: String
-                    value: <+input>.default(false).allowedValues(true,false)
+                    value: <+input>.default(no).allowedValues(yes,no)
                   - name: cleanupTestRunFiles
                     type: String
-                    value: <+input>.default(true).allowedValues(true,false)
+                    value: <+input>.default(yes).allowedValues(yes,no)
                   - name: failIfNotPassed
                     type: String
                     value: <+input>.default(true).allowedValues(true,false)
