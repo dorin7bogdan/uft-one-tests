@@ -3,7 +3,7 @@ template:
   identifier: FT_RunAndUpload_Inline
   versionLabel: v1
   type: StepGroup
-  description: Copy of FT_Run_And_Upload_Inline. Step group with both steps defined inline. Runs FTToolsLauncher with runType=FileSystem, fsZipTestReports=true and createJUnitReport=true in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> (printing the launcher command first, integer timeout in props), then uploads props.txt, results.xml and all zip files to an Artifact Registry under a per-pipeline package, even if the run fails.
+  description: Copy of FT_Run_And_Upload_Inline. Step group with both steps defined inline. Runs FTToolsLauncher with runType=FileSystem, fsZipTestReports=true and generateJUnitReport from input in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> (printing the launcher command first, integer timeout in props), then uploads props.txt, results.xml and all zip files to an Artifact Registry under a per-pipeline package, even if the run fails.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -43,6 +43,9 @@ template:
               - name: failIfNotPassed
                 type: String
                 value: <+input>.default(true).allowedValues(true,false)
+              - name: generateJUnitReport
+                type: String
+                value: <+input>.default(false).allowedValues(true,false)
             commandUnits:
               - identifier: Run_FTToolsLauncher
                 name: Run FTToolsLauncher
@@ -83,7 +86,7 @@ template:
                           "cleanupTestRunFiles=$Env:cleanupTestRunFiles",
                           "failIfNotPassed=$Env:failIfNotPassed",
                           "fsZipTestReports=true",
-                          "createJUnitReport=true"
+                          "generateJUnitReport=$Env:generateJUnitReport"
                         )
                         [IO.File]::WriteAllLines("$PWD\$f", $lines)
                         Write-Host "$exe -paramfile $f"
