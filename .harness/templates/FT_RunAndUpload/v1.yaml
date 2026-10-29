@@ -43,6 +43,9 @@ template:
                   - name: failIfNotPassed
                     type: String
                     value: <+input>.default(true).allowedValues(true,false)
+                  - name: generateJUnitReport
+                    type: String
+                    value: <+input>.default(no).allowedValues(yes,no)
       - step:
           name: Upload Files
           identifier: Upload_Files
