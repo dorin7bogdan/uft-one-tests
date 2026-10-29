@@ -3,7 +3,7 @@ template:
   identifier: FT_RunAndUpload_Inline
   versionLabel: v1
   type: StepGroup
-  description: Copy of FT_Run_And_Upload_Inline. Step group with both steps defined inline. Runs FTToolsLauncher with runType=FileSystem, fsZipTestReports=true and generateJUnitReport (yes/no from input) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> (printing the launcher command first, integer timeout in props), fails the step on a non-zero exit code when failIfNotPassed is yes, then uploads props.txt, results.xml and all zip files to an Artifact Registry under a per-pipeline package, even if the run fails.
+  description: Copy of FT_Run_And_Upload_Inline. Step group with both steps defined inline. Runs FTToolsLauncher with runType=FileSystem, fsZipTestReports=true and generateJUnitReport (yes/no from input) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> (printing the launcher command first, integer timeout in props), fails the step on a non-zero exit code when failIfNotPassed is yes, then uploads all files from that run folder (props, results, reports) to an Artifact Registry under a per-pipeline package, even if the run fails.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -141,8 +141,7 @@ template:
                         $key = "$env:ApiKey".Trim()
                         if ($registry -eq '') { Write-Host "No registry name provided"; exit 1 }
                         if ($key -eq '') { Write-Host "No API key provided"; exit 1 }
-                        $zips = @(Get-ChildItem -LiteralPath $PWD.Path -Filter '*.zip' -File | Select-Object -ExpandProperty Name)
-                        $names = @("props.txt", "results.xml") + $zips
+                        $names = @(Get-ChildItem -LiteralPath $PWD.Path -File | Select-Object -ExpandProperty Name)
                         $uri = "https://pkg.harness.io/pkg/<+account.identifier>/$registry/generic/$pkg/run-$seqId"
                         $link = "https://app.harness.io/ng/account/<+account.identifier>/module/har/orgs/<+org.identifier>/projects/<+project.identifier>/registries/$registry/artifacts/$pkg/versions/run-$seqId/overview"
                         $client = New-Object System.Net.Http.HttpClient
