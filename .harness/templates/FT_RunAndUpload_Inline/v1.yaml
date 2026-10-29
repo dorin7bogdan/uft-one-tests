@@ -80,7 +80,6 @@ template:
                           "resultTestNameOnly=$Env:resultTestNameOnly",
                           "resultUnifiedTestClassname=$Env:resultUnifiedTestClassname",
                           "cleanupTestRunFiles=$Env:cleanupTestRunFiles",
-                          "failIfNotPassed=$Env:failIfNotPassed",
                           "fsZipTestReports=true",
                           "generateJUnitReport=$Env:generateJUnitReport"
                         )
