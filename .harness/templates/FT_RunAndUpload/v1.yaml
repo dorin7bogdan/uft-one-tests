@@ -37,9 +37,6 @@ template:
                   - name: resultUnifiedTestClassname
                     type: String
                     value: <+input>.default(false).allowedValues(true,false)
-                  - name: archiveReportsAsSingleArtifact
-                    type: String
-                    value: <+input>.default(false).allowedValues(true,false)
                   - name: cleanupTestRunFiles
                     type: String
                     value: <+input>.default(true).allowedValues(true,false)
