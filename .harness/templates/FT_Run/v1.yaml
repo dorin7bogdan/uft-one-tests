@@ -3,7 +3,7 @@ template:
   identifier: FT_Run
   versionLabel: v1
   type: Step
-  description: Copy of Run FTToolsLauncher. WinRM Command step that writes props.txt (runType=FileSystem, resultsFilename=results.xml, testPath with doubled backslashes, integer timeout, fsZipTestReports=true, generateJUnitReport yes/no from input) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> on the VM, prints the launcher command, and runs FTToolsLauncher, waiting for the process to complete.
+  description: Copy of Run FTToolsLauncher. WinRM Command step that writes props.txt (runType=FileSystem, resultsFilename=results.xml, testPath with doubled backslashes, integer timeout, fsZipTestReports=true, generateJUnitReport yes/no from input) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> on the VM, prints the launcher command, and runs FTToolsLauncher, waiting for the process to complete. Fails the step on a non-zero exit code when failIfNotPassed is yes.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -36,7 +36,7 @@ template:
           value: <+input>.default(yes).allowedValues(yes,no)
         - name: failIfNotPassed
           type: String
-          value: <+input>.default(true).allowedValues(true,false)
+          value: <+input>.default(yes).allowedValues(yes,no)
         - name: generateJUnitReport
           type: String
           value: <+input>.default(no).allowedValues(yes,no)
@@ -83,7 +83,9 @@ template:
                   [IO.File]::WriteAllLines("$PWD\$f", $lines)
                   Write-Host "$exe -paramfile $f"
                   $p = Start-Process $exe -ArgumentList "-paramfile", $f -Wait -PassThru -NoNewWindow
-                  exit $p.ExitCode
+                  Write-Host "FTToolsLauncher exit code: $($p.ExitCode)"
+                  if ($p.ExitCode -ne 0 -and "$Env:failIfNotPassed" -eq 'yes') { exit $p.ExitCode }
+                  exit 0
       delegateSelectors:
         - uft
     failureStrategies:
