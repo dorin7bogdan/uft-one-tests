@@ -31,9 +31,6 @@ template:
         - name: resultUnifiedTestClassname
           type: String
           value: <+input>.default(false).allowedValues(true,false)
-        - name: archiveReportsAsSingleArtifact
-          type: String
-          value: <+input>.default(false).allowedValues(true,false)
         - name: cleanupTestRunFiles
           type: String
           value: <+input>.default(true).allowedValues(true,false)
@@ -79,7 +76,6 @@ template:
                     "cancelRunOnFailure=$Env:cancelRunOnFailure",
                     "resultTestNameOnly=$Env:resultTestNameOnly",
                     "resultUnifiedTestClassname=$Env:resultUnifiedTestClassname",
-                    "archiveReportsAsSingleArtifact=$Env:archiveReportsAsSingleArtifact",
                     "cleanupTestRunFiles=$Env:cleanupTestRunFiles",
                     "failIfNotPassed=$Env:failIfNotPassed",
                     "fsZipTestReports=true",
