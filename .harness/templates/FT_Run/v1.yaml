@@ -3,7 +3,7 @@ template:
   identifier: FT_Run
   versionLabel: v1
   type: Step
-  description: Copy of Run FTToolsLauncher. WinRM Command step that writes props.txt (runType=FileSystem, resultsFilename=results.xml, testPath with doubled backslashes, integer timeout, fsZipTestReports=true, generateJUnitReport yes/no from input) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> on the VM, prints the launcher command, and runs FTToolsLauncher, waiting for the process to complete. Fails the step on a non-zero exit code when failIfNotPassed is yes.
+  description: WinRM Command step that writes props.txt (runType=FileSystem, resultsFilename=results.xml, testPath with doubled backslashes, integer timeout, fsZipTestReports=true, generateJUnitReport yes/no from input) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> on the VM, prints the launcher command, and runs FTToolsLauncher, waiting for the process to complete. Fails the step on a non-zero exit code when failIfNotPassed is yes.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
