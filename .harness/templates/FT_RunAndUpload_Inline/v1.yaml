@@ -3,7 +3,7 @@ template:
   identifier: FT_RunAndUpload_Inline
   versionLabel: v1
   type: StepGroup
-  description: Copy of FT_Run_And_Upload_Inline. Step group with both steps defined inline. Runs FTToolsLauncher with runType=FileSystem, fsZipTestReports=true and generateJUnitReport (yes/no from input) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> (printing the launcher command first, integer timeout in props), fails the step on a non-zero exit code when failIfNotPassed is yes, then uploads all files from that run folder (props, results, reports) to an Artifact Registry under a per-pipeline package, even if the run fails.
+  description: Copy of FT_Run_And_Upload_Inline. Step group with both steps defined inline. Runs FTToolsLauncher with runType=FileSystem, fsZipTestReports=true and generateJUnitReport (yes/no from input) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> (printing the launcher command first, integer timeout in props), fails the step on a non-zero exit code when failIfNotPassed is yes, then uploads all files from that run folder (props, results, reports) to an Artifact Registry under a per-pipeline package, even if the run fails. The upload step deletes the run folder when cleanupTestRunFiles is yes and all uploads succeed.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -34,9 +34,6 @@ template:
               - name: resultUnifiedTestClassname
                 type: String
                 value: <+input>.default(no).allowedValues(yes,no)
-              - name: cleanupTestRunFiles
-                type: String
-                value: <+input>.default(yes).allowedValues(yes,no)
               - name: failIfNotPassed
                 type: String
                 value: <+input>.default(yes).allowedValues(yes,no)
@@ -79,7 +76,6 @@ template:
                           "cancelRunOnFailure=$Env:cancelRunOnFailure",
                           "resultTestNameOnly=$Env:resultTestNameOnly",
                           "resultUnifiedTestClassname=$Env:resultUnifiedTestClassname",
-                          "cleanupTestRunFiles=$Env:cleanupTestRunFiles",
                           "fsZipTestReports=true",
                           "generateJUnitReport=$Env:generateJUnitReport"
                         )
@@ -116,6 +112,9 @@ template:
               - name: ApiKey
                 type: String
                 value: <+input>
+              - name: cleanupTestRunFiles
+                type: String
+                value: <+input>.default(yes).allowedValues(yes,no)
             commandUnits:
               - identifier: Upload
                 name: Upload files
@@ -165,6 +164,11 @@ template:
                         Write-Host ""
                         Write-Host "Uploaded files: $link"
                         if ($failed) { exit 1 }
+                        if ("$env:cleanupTestRunFiles" -eq 'yes') {
+                          Set-Location $tools
+                          Remove-Item -LiteralPath $work -Recurse -Force
+                          Write-Host "Deleted run folder: $work"
+                        }
             delegateSelectors:
               - uft
           strategy:
