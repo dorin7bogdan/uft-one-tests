@@ -3,7 +3,7 @@ template:
   identifier: FT_RunAndUpload
   versionLabel: v1
   type: StepGroup
-  description: Copy of FT_Run_And_Upload. Runs FTToolsLauncher with FT_Run, then uploads props_<executionId>.txt and results_<executionId>.xml with FT_Upload, even if the run fails.
+  description: Copy of FT_Run_And_Upload. Runs FTToolsLauncher with FT_Run, then uploads all files from the run folder with FT_Upload, even if the run fails. FT_Upload deletes the run folder when cleanupTestRunFiles is yes and all uploads succeed.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -37,9 +37,6 @@ template:
                   - name: resultUnifiedTestClassname
                     type: String
                     value: <+input>.default(no).allowedValues(yes,no)
-                  - name: cleanupTestRunFiles
-                    type: String
-                    value: <+input>.default(yes).allowedValues(yes,no)
                   - name: failIfNotPassed
                     type: String
                     value: <+input>.default(yes).allowedValues(yes,no)
@@ -65,6 +62,9 @@ template:
                   - name: ApiKey
                     type: String
                     value: <+input>
+                  - name: cleanupTestRunFiles
+                    type: String
+                    value: <+input>.default(yes).allowedValues(yes,no)
           strategy:
             repeat:
               items: <+infra.hosts>
