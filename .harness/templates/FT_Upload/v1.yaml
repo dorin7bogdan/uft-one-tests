@@ -73,3 +73,6 @@ template:
                   if ($failed) { exit 1 }
       delegateSelectors:
         - uft
+    strategy:
+      repeat:
+        items: <+infra.hosts>
