@@ -3,7 +3,7 @@ template:
   identifier: FT_Upload
   versionLabel: v1
   type: Step
-  description: Copy of FT_Upload_Artifacts. Uploads all files from FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> (props, results, reports) on the VM to an Artifact Registry under a per-pipeline package and prints a link to the run folder. Inputs are the registry name and API key.
+  description: Copy of FT_Upload_Artifacts. Uploads all files from FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> (props, results, reports) on the VM to an Artifact Registry under a per-pipeline package and prints a link to the run folder. When cleanupTestRunFiles is yes and all uploads succeed, deletes the run folder and its content. Inputs are the registry name, API key and cleanupTestRunFiles.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -22,6 +22,9 @@ template:
         - name: ApiKey
           type: String
           value: <+input>
+        - name: cleanupTestRunFiles
+          type: String
+          value: <+input>.default(yes).allowedValues(yes,no)
       commandUnits:
         - identifier: Upload
           name: Upload files
@@ -71,6 +74,11 @@ template:
                   Write-Host ""
                   Write-Host "Uploaded files: $link"
                   if ($failed) { exit 1 }
+                  if ("$env:cleanupTestRunFiles" -eq 'yes') {
+                    Set-Location $tools
+                    Remove-Item -LiteralPath $work -Recurse -Force
+                    Write-Host "Deleted run folder: $work"
+                  }
       delegateSelectors:
         - uft
     strategy:
