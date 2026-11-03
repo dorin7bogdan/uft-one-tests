@@ -16,7 +16,7 @@ template:
     spec:
       onDelegate: false
       environmentVariables:
-        - name: testPaths
+        - name: testPath
           type: String
           value: <+input>
         - name: timeout
@@ -63,7 +63,7 @@ template:
                   Set-Location $work
                   Write-Host "Work dir: $PWD"
                   $f = "props.txt"
-                  $tp = "$Env:testPaths" -replace '\\+', '\\'
+                  $tp = "$Env:testPath" -replace '\\+', '\\'
                   $to = [int][math]::Truncate([double]::Parse("$Env:timeout", [Globalization.CultureInfo]::InvariantCulture))
                   $lines = @(
                     "runType=FileSystem",
