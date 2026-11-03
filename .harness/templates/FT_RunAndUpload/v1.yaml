@@ -22,7 +22,7 @@ template:
               type: Command
               spec:
                 environmentVariables:
-                  - name: testPaths
+                  - name: testPath
                     type: String
                     value: <+input>
                   - name: timeout
