@@ -3,7 +3,7 @@ template:
   identifier: FT_Run
   versionLabel: v1
   type: Step
-  description: WinRM Command step that writes props.txt (runType=FileSystem, resultsFilename=results.xml, testPath with doubled backslashes, integer timeout, fsZipTestReports=true, generateJUnitReport yes/no from input) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> on the VM, prints the launcher command, and runs FTToolsLauncher, waiting for the process to complete. Fails the step on a non-zero exit code when failIfNotPassed is yes.
+  description: WinRM Command step that writes props.txt (runType=FileSystem, resultsFilename=results.xml, testPath with doubled backslashes, integer timeout, fsZipTestReports=true, fsDeletePreviousTestReports from input, generateJUnitReport yes/no from input) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> on the VM, prints the launcher command, and runs FTToolsLauncher, waiting for the process to complete. Fails the step on a non-zero exit code when failIfNotPassed is yes.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
@@ -37,6 +37,9 @@ template:
         - name: generateJUnitReport
           type: String
           value: <+input>.default(no).allowedValues(yes,no)
+        - name: deletePreviousTestReports
+          type: String
+          value: <+input>.default(yes).allowedValues(yes,no)
       commandUnits:
         - identifier: Run_FTToolsLauncher
           name: Run FTToolsLauncher
@@ -74,6 +77,7 @@ template:
                     "resultTestNameOnly=$Env:resultTestNameOnly",
                     "resultUnifiedTestClassname=$Env:resultUnifiedTestClassname",
                     "fsZipTestReports=true",
+                    "fsDeletePreviousTestReports=$Env:deletePreviousTestReports",
                     "generateJUnitReport=$Env:generateJUnitReport"
                   )
                   [IO.File]::WriteAllLines("$PWD\$f", $lines)
