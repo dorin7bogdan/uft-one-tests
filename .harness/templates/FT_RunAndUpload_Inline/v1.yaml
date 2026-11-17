@@ -24,7 +24,7 @@ template:
                 value: <+input>
               - name: timeout
                 type: Number
-                value: <+input>
+                value: <+input>.default(-1)
               - name: cancelRunOnFailure
                 type: String
                 value: <+input>.default(no).allowedValues(yes,no)
