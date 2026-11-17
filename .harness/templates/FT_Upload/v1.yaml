@@ -3,7 +3,7 @@ template:
   identifier: FT_Upload
   versionLabel: v1
   type: Step
-  description: Copy of FT_Upload_Artifacts. Uploads all files from FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> (props, results, reports) on the VM to an Artifact Registry under a per-pipeline package and prints a link to the run folder. When cleanupTestRunFiles is yes and all uploads succeed, deletes the run folder and its content. Inputs are the registry name, API key and cleanupTestRunFiles.
+  description: Uploads all files from FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> (props, results, reports) on the VM to an Artifact Registry under a per-pipeline package and prints a link to the run folder. When cleanupTestRunFiles is yes and all uploads succeed, deletes the run folder and its content. Inputs are the registry name, API key and cleanupTestRunFiles.
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
