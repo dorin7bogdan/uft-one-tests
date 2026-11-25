@@ -7,7 +7,7 @@ template:
   projectIdentifier: UFT
   orgIdentifier: default
   tags:
-    ai_generated: ""
+    functional_testing: ""
   spec:
     type: ShellScript
     name: Upload Files
