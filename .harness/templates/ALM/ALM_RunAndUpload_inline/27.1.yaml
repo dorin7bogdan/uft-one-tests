@@ -77,6 +77,7 @@ template:
                       "almTestSetsOrderByCriteria=$Env:testSetsOrderByCriteria",
                       "almRunMode=RUN_$Env:runMode",
                       "almRunHost=$Env:runHost",
+                      "generateJUnitReport=$Env:generateJUnitReport",
                       "resultsFilename=results.xml"
                     )
                     $sets = @("$Env:testSets" -split '[,;]' | ForEach-Object { $_.Trim().Trim('"') } | Where-Object { $_ -ne '' })
@@ -148,6 +149,9 @@ template:
               - name: runHost
                 type: String
                 value: <+input>.default(localhost)
+              - name: generateJUnitReport
+                type: String
+                value: <+input>.default(no).allowedValues(yes,no)
               - name: failIfNotPassed
                 type: String
                 value: <+input>.default(yes).allowedValues(yes,no)
