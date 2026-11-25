@@ -3,7 +3,7 @@ template:
   identifier: FT_RunAndUpload
   versionLabel: "27.1"
   type: StepGroup
-  description: Runs FTToolsLauncher with FT_Run, then uploads all files from the run folder with FT_Upload, even if the run fails. FT_Upload deletes the run folder when cleanupTestRunFiles is yes and all uploads succeed.
+  description: Runs FTToolsLauncher with FT_Run, then uploads all files from the run folder with FT_Harness_Upload, even if the run fails. FT_Harness_Upload deletes the run folder when cleanupTestRunFiles is yes and all uploads succeed.
   projectIdentifier: UFT
   orgIdentifier: opentext
   tags:
@@ -54,7 +54,7 @@ template:
           when:
             stageStatus: All
           template:
-            templateRef: FT_Upload
+            templateRef: FT_Harness_Upload
             versionLabel: "27.1"
             templateInputs:
               identifier: Upload_Files
