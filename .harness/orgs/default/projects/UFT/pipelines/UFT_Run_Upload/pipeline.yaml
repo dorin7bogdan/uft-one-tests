@@ -1,0 +1,98 @@
+pipeline:
+  name: FS_QuickTest Run and Upload
+  identifier: UFT_Run_Upload
+  description: Runs FTToolsLauncher (runType=FileSystem) on the UFT VM through WinRM using the FT_Run step template, then uploads all files from the run folder to an Artifact Registry using the FT_Upload step template, even if the run fails. The upload step deletes the run folder when cleanupTestRunFiles is yes and all uploads succeed.
+  projectIdentifier: UFT
+  orgIdentifier: default
+  tags:
+    ai_generated: ""
+  stages:
+    - stage:
+        name: WinRM Stage
+        identifier: WinRM_Stage
+        type: Deployment
+        spec:
+          deploymentType: WinRm
+          service:
+            serviceRef: <+input>.default(ftservice)
+            serviceInputs: <+input>
+          environment:
+            environmentRef: <+input>.default(ftwindows)
+            deployToAll: false
+            infrastructureDefinitions: <+input>
+            environmentInputs: <+input>
+          execution:
+            steps:
+              - step:
+                  name: Run FTToolsLauncher
+                  identifier: Run_FTToolsLauncher
+                  template:
+                    templateRef: FT_Run
+                    versionLabel: "27.1"
+                    templateInputs:
+                      identifier: Run_FTToolsLauncher
+                      type: ShellScript
+                      spec:
+                        executionTarget:
+                          connectorRef: <+input>
+                        environmentVariables:
+                          - name: testPath
+                            type: String
+                            value: <+input>.default(C:\UFTTests\QuickPass)
+                          - name: timeout
+                            type: Number
+                            value: <+input>.default(-1)
+                          - name: cancelRunOnFailure
+                            type: String
+                            value: <+input>.default(no).allowedValues(yes,no)
+                          - name: resultTestNameOnly
+                            type: String
+                            value: <+input>.default(yes).allowedValues(yes,no)
+                          - name: resultUnifiedTestClassname
+                            type: String
+                            value: <+input>.default(no).allowedValues(yes,no)
+                          - name: failIfNotPassed
+                            type: String
+                            value: <+input>.default(yes).allowedValues(yes,no)
+                          - name: generateJUnitReport
+                            type: String
+                            value: <+input>.default(no).allowedValues(yes,no)
+                          - name: deletePreviousTestReports
+                            type: String
+                            value: <+input>.default(yes).allowedValues(yes,no)
+              - step:
+                  name: Upload Files
+                  identifier: Upload_Files
+                  template:
+                    templateRef: FT_Upload
+                    versionLabel: "27.1"
+                    templateInputs:
+                      identifier: Upload_Files
+                      type: ShellScript
+                      spec:
+                        executionTarget:
+                          connectorRef: <+input>
+                        environmentVariables:
+                          - name: RegistryName
+                            type: String
+                            value: <+input>.default(uft-one)
+                          - name: ApiKey
+                            type: Secret
+                            value: <+input>
+                          - name: cleanupTestRunFiles
+                            type: String
+                            value: <+input>.default(yes).allowedValues(yes,no)
+                  when:
+                    stageStatus: All
+            rollbackSteps: []
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: MarkAsFailure
+        delegateSelectors:
+          - uft
+        when:
+          pipelineStatus: Success
