@@ -45,7 +45,7 @@ template:
               "runType=FileSystem",
               "Test1=$tp",
               "resultsFilename=results.xml",
-              "timeout=$to",
+              "fsTimeout=$to",
               "cancelRunOnFailure=$Env:cancelRunOnFailure",
               "resultTestNameOnly=$Env:resultTestNameOnly",
               "resultUnifiedTestClassname=$Env:resultUnifiedTestClassname",
