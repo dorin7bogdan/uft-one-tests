@@ -3,7 +3,7 @@ template:
   identifier: FT_Run
   versionLabel: "27.1"
   type: Step
-  description: WinRM ShellScript step that writes props.txt (runType=FileSystem, resultsFilename=results.xml, testPath with doubled backslashes, integer timeout, fsZipTestReports=true, fsDeletePreviousTestReports from input, generateJUnitReport yes/no from input) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId> on the VM, prints the launcher command, and runs FTToolsLauncher, waiting for the process to complete. Fails the step on a non-zero exit code when failIfNotPassed is yes.
+  description: WinRM ShellScript step that writes props.txt (runType=FileSystem, resultsFilename=results.xml, testPath with doubled backslashes, integer timeout, fsZipTestReports=true, fsDeletePreviousTestReports from input, generateJUnitReport yes/no from input) in FT_TOOLS_LAUNCHER\\<pipeline identifier>\\<sequenceId> on the VM, prints the launcher command, and runs FTToolsLauncher, waiting for the process to complete. Fails the step on a non-zero exit code when failIfNotPassed is yes.
   projectIdentifier: UFT
   orgIdentifier: opentext
   tags:
@@ -62,27 +62,35 @@ template:
       environmentVariables:
         - name: testPath
           type: String
+          description: Path of the test or test folder to run on the VM.
           value: <+input>
         - name: timeout
           type: Number
+          description: Maximum run time in seconds (-1 for no limit).
           value: <+input>.default(-1)
         - name: cancelRunOnFailure
           type: String
+          description: Stop the run after the first failed test (yes/no).
           value: <+input>.default(no).allowedValues(yes,no)
         - name: resultTestNameOnly
           type: String
+          description: Show only the test name, not its full path, in the results (yes/no).
           value: <+input>.default(yes).allowedValues(yes,no)
         - name: resultUnifiedTestClassname
           type: String
+          description: Use one unified class name for all tests in the results (yes/no).
           value: <+input>.default(no).allowedValues(yes,no)
         - name: failIfNotPassed
           type: String
+          description: Fail the step when FTToolsLauncher returns a non-zero exit code (yes/no).
           value: <+input>.default(yes).allowedValues(yes,no)
         - name: generateJUnitReport
           type: String
+          description: Also generate a JUnit XML report (yes/no).
           value: <+input>.default(no).allowedValues(yes,no)
         - name: deletePreviousTestReports
           type: String
+          description: Delete previous test reports before the run (yes/no).
           value: <+input>.default(yes).allowedValues(yes,no)
       outputVariables: []
       delegateSelectors:
