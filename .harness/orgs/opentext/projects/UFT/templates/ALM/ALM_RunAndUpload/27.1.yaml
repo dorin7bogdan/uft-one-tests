@@ -35,16 +35,16 @@ template:
                     value: <+input>.default(no).allowedValues(yes,no)
                   - name: username
                     type: String
-                    value: <+input>.default(empty)
+                    value: <+input>.default(none)
                   - name: password
                     type: Secret
-                    value: <+input>.default(empty)
+                    value: <+input>.default(none)
                   - name: clientId
                     type: String
-                    value: <+input>.default(empty)
+                    value: <+input>.default(none)
                   - name: apiKeySecret
                     type: Secret
-                    value: <+input>.default(empty)
+                    value: <+input>.default(none)
                   - name: domain
                     type: String
                     value: <+input>
