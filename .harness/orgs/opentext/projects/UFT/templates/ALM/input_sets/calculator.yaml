@@ -1,0 +1,94 @@
+inputSet:
+  name: calculator
+  tags: {}
+  identifier: calculator
+  orgIdentifier: opentext
+  projectIdentifier: UFT
+  pipeline:
+    identifier: ALM_RunAndUpload
+    stages:
+      - stage:
+          identifier: ALM_Run_And_Upload
+          type: Deployment
+          spec:
+            execution:
+              steps:
+                - stepGroup:
+                    identifier: ALM_Run_And_Upload
+                    template:
+                      templateInputs:
+                        steps:
+                          - step:
+                              identifier: Run_FTToolsLauncher
+                              template:
+                                templateInputs:
+                                  identifier: Run_FTToolsLauncher
+                                  type: ShellScript
+                                  spec:
+                                    executionTarget:
+                                      connectorRef: DorinVM2
+                                    environmentVariables:
+                                      - name: testSets
+                                        type: String
+                                        value: DEV\BPTParams
+                                      - name: serverUrl
+                                        type: String
+                                        value: http://almrhel705.aws.swinfra.net:8080
+                                      - name: ssoEnabled
+                                        type: String
+                                        value: "no"
+                                      - name: username
+                                        type: String
+                                        value: apikey-fpkrfsimkhrnqnoiqoio
+                                      - name: password
+                                        type: Secret
+                                        value: apikey-fpkrfsimkhrnqnoiqoio
+                                      - name: clientId
+                                        type: String
+                                        value: none
+                                      - name: apiKeySecret
+                                        type: Secret
+                                        value: none
+                                      - name: domain
+                                        type: String
+                                        value: AUTOMATION
+                                      - name: project
+                                        type: String
+                                        value: PLUGINS
+                                      - name: timeout
+                                        type: Number
+                                        value: -1
+                                      - name: testSetsOrderByCriteria
+                                        type: String
+                                        value: name
+                                      - name: runMode
+                                        type: String
+                                        value: LOCAL
+                                      - name: runHost
+                                        type: String
+                                        value: localhost
+                                      - name: generateJUnitReport
+                                        type: String
+                                        value: "yes"
+                                      - name: failIfNotPassed
+                                        type: String
+                                        value: "yes"
+                          - step:
+                              identifier: Upload_Files
+                              template:
+                                templateInputs:
+                                  identifier: Upload_Files
+                                  type: ShellScript
+                                  spec:
+                                    executionTarget:
+                                      connectorRef: DorinVM2
+                                    environmentVariables:
+                                      - name: RegistryName
+                                        type: String
+                                        value: uft-one
+                                      - name: ApiKey
+                                        type: Secret
+                                        value: account.uft_api_key
+                                      - name: cleanupTestRunFiles
+                                        type: String
+                                        value: "yes"
