@@ -64,6 +64,9 @@ inputSet:
                                   - name: runHost
                                     type: String
                                     value: localhost
+                                  - name: generateJUnitReport
+                                    type: String
+                                    value: "no"
                                   - name: failIfNotPassed
                                     type: String
                                     value: "yes"
