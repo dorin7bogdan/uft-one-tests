@@ -113,7 +113,7 @@ template:
           value: <+input>
         - name: serverUrl
           type: String
-          description: URL of the ALM server.
+          description: "URL of the ALM server (pattern: http(s)://<server>:<port>)."
           value: <+input>
         - name: ssoEnabled
           type: String
