@@ -1,7 +1,7 @@
 pipeline:
   name: FT_RunAndUpload
   identifier: FT_RunAndUpload
-  description: Runs UFT file system tests with the FT_RunAndUpload step group template and uploads the run files to an Artifact Registry.
+  description: Runs UFT file system tests with the FT_FileSystem_RunAndUpload step group template and uploads the run files to an Artifact Registry.
   projectIdentifier: UFT
   orgIdentifier: opentext
   tags:
@@ -27,7 +27,7 @@ pipeline:
                   name: FT Run And Upload
                   identifier: FT_Run_And_Upload
                   template:
-                    templateRef: FT_RunAndUpload
+                    templateRef: FT_FileSystem_RunAndUpload
                     versionLabel: "27.1"
                     templateInputs:
                       steps:
