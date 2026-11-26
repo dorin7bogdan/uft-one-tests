@@ -109,48 +109,63 @@ template:
       environmentVariables:
         - name: testSets
           type: String
+          description: ALM test sets to run, separated by comma or semicolon (for example Root\Folder\TestSet1).
           value: <+input>
         - name: serverUrl
           type: String
+          description: URL of the ALM server.
           value: <+input>
         - name: ssoEnabled
           type: String
+          description: Authenticate with an API key (SSO) instead of username and password (yes/no).
           value: <+input>.default(no).allowedValues(yes,no)
         - name: username
           type: String
+          description: ALM username (used when SSO is no).
           value: <+input>.default(none)
         - name: password
           type: Secret
+          description: Secret holding the ALM password (used when SSO is no).
           value: <+input>.default(none)
         - name: clientId
           type: String
+          description: ALM API key client ID (used when SSO is yes).
           value: <+input>.default(none)
         - name: apiKeySecret
           type: Secret
+          description: Secret holding the ALM API key secret (used when SSO is yes).
           value: <+input>.default(none)
         - name: domain
           type: String
+          description: ALM domain that contains the test sets.
           value: <+input>
         - name: project
           type: String
+          description: ALM project that contains the test sets.
           value: <+input>
         - name: timeout
           type: Number
+          description: Maximum run time in seconds (-1 for no limit).
           value: <+input>.default(-1)
         - name: testSetsOrderByCriteria
           type: String
+          description: Order in which the test sets are run, by id or by name.
           value: <+input>.default(name).allowedValues(id,name)
         - name: runMode
           type: String
+          description: Where the tests run - LOCAL, REMOTE or PLANNED_HOST.
           value: <+input>.default(LOCAL).allowedValues(LOCAL,REMOTE,PLANNED_HOST)
         - name: runHost
           type: String
+          description: Host that runs the tests when the run mode is REMOTE.
           value: <+input>.default(localhost)
         - name: generateJUnitReport
           type: String
+          description: Also generate a JUnit XML report (yes/no).
           value: <+input>.default(no).allowedValues(yes,no)
         - name: failIfNotPassed
           type: String
+          description: Fail the step when FTToolsLauncher returns a non-zero exit code (yes/no).
           value: <+input>.default(yes).allowedValues(yes,no)
       outputVariables: []
       delegateSelectors:
