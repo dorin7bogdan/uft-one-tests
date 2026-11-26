@@ -93,12 +93,15 @@ template:
       environmentVariables:
         - name: RegistryName
           type: String
+          description: Name of the Harness Artifact Registry to upload the run files to.
           value: <+input>
         - name: ApiKey
           type: Secret
+          description: Secret holding the Harness API key used to upload to the registry.
           value: <+input>
         - name: cleanupTestRunFiles
           type: String
+          description: Delete the run folder on the VM after all uploads succeed (yes/no).
           value: <+input>.default(yes).allowedValues(yes,no)
       outputVariables: []
       delegateSelectors:
