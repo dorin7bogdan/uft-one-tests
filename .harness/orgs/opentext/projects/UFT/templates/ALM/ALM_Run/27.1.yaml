@@ -3,7 +3,7 @@ template:
   identifier: ALM_Run
   versionLabel: "27.1"
   type: Step
-  description: WinRM ShellScript step that runs FTToolsLauncher with runType=Alm using the ALM connection and test set inputs (saved in props.txt) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId>. The ALM password and API key secret are encrypted with Protect-Data.ps1 (loaded from the same folder as FTToolsLauncher on the VM) and the key is passed to FTToolsLauncher with --use-stdin-key. Fails the step on a non-zero exit code when failIfNotPassed is yes.
+  description: WinRM ShellScript step that runs FTToolsLauncher with runType=Alm using the ALM connection and test set inputs (saved in props.txt) in FT_TOOLS_LAUNCHER\<pipeline identifier>\<sequenceId>. The ALM password and API key secret are encrypted with FTL-Helper.ps1 (loaded from the same folder as FTToolsLauncher on the VM) and the key is passed to FTToolsLauncher with --use-stdin-key. Fails the step on a non-zero exit code when failIfNotPassed is yes.
   projectIdentifier: UFT
   orgIdentifier: opentext
   tags:
@@ -51,15 +51,15 @@ template:
                 $exe = Get-ChildItem -Path $dir -Filter 'FTToolsLauncher*.exe' | Select-Object -First 1 -ExpandProperty FullName
               }
               if (-not $exe) { throw "FTToolsLauncher not found in $tools" }
-              $helperPath = Join-Path (Split-Path -Parent $exe) 'Protect-Data.ps1'
-              if (-not (Test-Path -LiteralPath $helperPath -PathType Leaf)) { throw "Protect-Data.ps1 not found at $helperPath" }
+              $helperPath = Join-Path (Split-Path -Parent $exe) 'FTL-Helper.ps1'
+              if (-not (Test-Path -LiteralPath $helperPath -PathType Leaf)) { throw "FTL-Helper.ps1 not found at $helperPath" }
               $work = Join-Path (Join-Path $dir "<+pipeline.identifier>") "<+pipeline.sequenceId>"
               New-Item -ItemType Directory -Force -Path $work | Out-Null
               Set-Location $work
               Write-Host "Work dir: $PWD"
 
               . $helperPath
-              if (-not (Get-Command 'Invoke-FTL' -ErrorAction SilentlyContinue)) { throw "Protect-Data.ps1 at $helperPath is outdated: Invoke-FTL not found" }
+              if (-not (Get-Command 'Invoke-FTL' -ErrorAction SilentlyContinue)) { throw "FTL-Helper.ps1 at $helperPath is outdated: Invoke-FTL not found" }
 
               $serverUrlEsc = "$Env:serverUrl".Replace(':', '\:')
               $lines = @(
